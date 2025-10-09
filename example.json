@@ -1,0 +1,39 @@
+{
+    "devices" : [
+        {"connection" : "tcp", "address" : "192.168.180.112", "port" : "5012"},
+        {"connection" : "serial", "port" : "COM6", "baud" : "115200"}
+    ],
+    "timeline" : [
+        {"timestamp" : 0, "device" : 0, "offset" : 0, "command" : "NONE", "colors" : ["0x000000", "0x000000", "0x000000", "0x000000"]},
+        {"timestamp" : 0, "device" : 1, "offset" : 0, "command" : "NONE", "colors" : ["0x000000", "0x000000", "0x000000", "0x000000"]},
+        
+        {"timestamp" : 1000, "device" : 0, "offset" : 0, "command" : "NONE", "colors" : ["0xff0000", "0xff0000", "0xff0000", "0xff0000"]},
+        {"timestamp" : 1500, "device" : 0, "offset" : 0, "command" : "NONE", "colors" : ["0x00ff00", "0x00ff00", "0x00ff00", "0x00ff00"]},
+        {"timestamp" : 2000, "device" : 0, "offset" : 0, "command" : "NONE", "colors" : ["0x0000ff", "0x0000ff", "0x0000ff", "0x0000ff"]},
+        
+        {"timestamp" : 1000, "device" : 1, "offset" : 0, "command" : "NONE", "colors" : ["0xff0000", "0xff0000", "0xff0000", "0xff0000"]},
+        {"timestamp" : 1500, "device" : 1, "offset" : 0, "command" : "NONE", "colors" : ["0x00ff00", "0x00ff00", "0x00ff00", "0x00ff00"]},
+        {"timestamp" : 2000, "device" : 1, "offset" : 0, "command" : "NONE", "colors" : ["0x0000ff", "0x0000ff", "0x0000ff", "0x0000ff"]},
+
+        {"timestamp" : 3000, "device" : 1, "offset" : 0, "command" : "CLEAR", "colors" : []},
+
+        {"timestamp" : 4000, "device" : 1, "offset" : 0, "command" : "NONE", "colors" : ["0xff0000"]},
+        {"timestamp" : 5000, "device" : 1, "offset" : 0, "command" : "NONE", "colors" : ["0x00ff00"]},
+        {"timestamp" : 6000, "device" : 1, "offset" : 0, "command" : "NONE", "colors" : ["0x0000ff"]},
+
+        {"timestamp" : 7000, "device" : 1, "offset" : 1, "command" : "NONE", "colors" : ["0xff0000"]},
+        {"timestamp" : 8000, "device" : 1, "offset" : 1, "command" : "NONE", "colors" : ["0x00ff00"]},
+        {"timestamp" : 9000, "device" : 1, "offset" : 1, "command" : "NONE", "colors" : ["0x0000ff"]},
+
+        {"timestamp" : 10000, "device" : 1, "offset" : 2, "command" : "NONE", "colors" : ["0xff0000"]},
+        {"timestamp" : 11000, "device" : 1, "offset" : 2, "command" : "NONE", "colors" : ["0x00ff00"]},
+        {"timestamp" : 12000, "device" : 1, "offset" : 2, "command" : "NONE", "colors" : ["0x0000ff"]},
+
+        {"timestamp" : 13000, "device" : 1, "offset" : 3, "command" : "NONE", "colors" : ["0xff0000"]},
+        {"timestamp" : 14000, "device" : 1, "offset" : 3, "command" : "NONE", "colors" : ["0x00ff00"]},
+        {"timestamp" : 15000, "device" : 1, "offset" : 3, "command" : "NONE", "colors" : ["0x0000ff"]},
+
+        {"timestamp" : 16000, "device" : 0, "offset" : 0, "command" : "CLEAR", "colors" : []},
+        {"timestamp" : 16000, "device" : 1, "offset" : 0, "command" : "CLEAR", "colors" : []}
+    ]
+}
