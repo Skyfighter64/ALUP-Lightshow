@@ -13,7 +13,8 @@ Define a json file with:
 - a list of devices
 - a list of frames with ascending timestamps in milliseconds 
 
-Frame, Command and Device API are kept analogous to the [pyalup definitions](https://github.com/Skyfighter64/Python-ALUP/) 
+Frame, Command and Device API are kept analogous to the [pyalup definitions](https://github.com/Skyfighter64/Python-ALUP/).
+
 See 'example.json' for an example lightshow with two devices.
 
 ## Usage:
