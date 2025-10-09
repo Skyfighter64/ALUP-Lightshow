@@ -17,6 +17,9 @@ Frame, Command and Device API are kept analogous to the [pyalup definitions](htt
 
 See 'example.json' for an example lightshow with two devices.
 
+## Security Note:
+Only use trusted light show json files, don't run files from untrused sources without verifying their contents.
+
 ## Usage:
 1. Specify your json lightshow file in `lightshow.py: lightshow.fromJson()`
 2. Run the lighthshow: `python3 lightshow.py`
