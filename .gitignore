@@ -1,5 +1,6 @@
 *.mp4
 lightshow.json
+shows/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
