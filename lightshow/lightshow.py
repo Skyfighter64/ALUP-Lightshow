@@ -2,6 +2,7 @@ import json
 import logging
 import time
 import threading
+import uuid
 import pyalup
 from pyalup.Device import Device
 from pyalup.Frame import Frame, Command
@@ -27,7 +28,7 @@ def main():
 
 
 
-class Lighshow:
+class Lightshow:
     def __init__(self):
         self.logger = logging.getLogger(__name__)
         # NOTE: Don't use pyalup.Group here because we are not necessarily running devices synchronized (???)
@@ -93,11 +94,35 @@ class Lighshow:
 
         
 
-    def toJson(self):
-        # 1. write device configs to json
+    # convert the lightshow to a json file and save it to the given pat
+    def toJson(self, output_path):
+        #print(json.dumps(self))
+        data = {
+            # NOTE: devices cannot be converted yet because connection parameters are not saved
+            # For now: add them by hand to json file
+            "devices" : [],
+            "timeline" : self._FramesToJson()
+        }
+        json_string = json.dumps(data, cls=NoIndentEncoder, indent=4)
+        with open(output_path, "w+") as f:
+            f.write(json_string)
+        
 
-        # 2. write all animation steps 
-        pass
+    # convert all frames of this lightshow to json format
+    def _FramesToJson(self):
+        out =  []
+        for i in range(len(self.frames)):
+            for frame in self.frames[i]:
+                out.append(NoIndent({
+                        "timestamp" : frame.timestamp,
+                        "device" : i,
+                        "offset" : frame.offset,
+                        "command" : frame.command.name,
+                        "colors" : [str(color) for color in frame.colors]
+                        }))
+        return out
+
+
 
     def __str__(self):
         return "Lightshow: \nDevices: " + str(self.devices) + "\nFrames: " +  str(self.frames) 
@@ -151,6 +176,38 @@ class Lighshow:
             # add frame to frame list for the device
             self.frames[frame_data["device"]].append(frame)
             self.logger.debug("Loaded frame: " + str(frame))
+
+
+"""
+    Prettier JSON encoder
+    Credits: https://stackoverflow.com/a/25935321
+"""
+class NoIndent(object):
+    def __init__(self, value):
+        self.value = value
+
+
+class NoIndentEncoder(json.JSONEncoder):
+    def __init__(self, *args, **kwargs):
+        super(NoIndentEncoder, self).__init__(*args, **kwargs)
+        self.kwargs = dict(kwargs)
+        del self.kwargs['indent']
+        self._replacement_map = {}
+
+    def default(self, o):
+        if isinstance(o, NoIndent):
+            key = uuid.uuid4().hex
+            self._replacement_map[key] = json.dumps(o.value, **self.kwargs)
+            return "@@%s@@" % (key,)
+        else:
+            return super(NoIndentEncoder, self).default(o)
+
+    def encode(self, o):
+        result = super(NoIndentEncoder, self).encode(o)
+        for k, v in iter(self._replacement_map.items()):
+            result = result.replace('"@@%s@@"' % (k,), v)
+        return result
+    
 
 if __name__=="__main__":
     main()
