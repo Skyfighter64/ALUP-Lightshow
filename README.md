@@ -16,12 +16,11 @@ Only use trusted light show json files, don't run files from untrused sources wi
 
 ## Running a light show:
 1. Change the device connection parameters to your devices in your lightshow file (eg. for `example.json: Set the IP address for Device 0 and the COM-Port for device 1 correctly)
-2. Run: `python3 lightshow/lightshow.py example.json`
+2. Run: `python3 lightshow/lightshow.py [filename.json]`
 
 ## Create a lightshow from mp4:
-1. In `video_to_lightshow.py`, set `NUM_LEDS` to the number of LEDS of your device
-2. Set the video input and lightshow output paths in the same file.
-3. run `python3 video_to_lightshow.py` to start conversion
+Run `python3 video_to_lightshow.py [video_file.mp4] -o [output.json]` to start conversion
+**NOTE:** `python3 video_to_lightshow.py --help` to find out more about the arguments
 
 **NOTE**: This script requires [opencv-python](https://pypi.org/project/opencv-python/)
 

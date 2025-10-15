@@ -4,6 +4,8 @@ import cv2
 import sys
 import os
 import time
+import logging
+import argparse
 from pyalup.Frame import Frame 
 
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -18,16 +20,26 @@ Scales the given video down to one horizontal line of NUM_LED pixels. Only works
 
 """
 
- 
-# the Number of LEDs
-NUM_LEDS = 100
-VIDEO_PATH = r"video.mp4"
-output_path = "lightshow.json"
-
+parser = argparse.ArgumentParser(prog="Video To Lightshow", description="Convert video files to ALUP light shows which can be played with the light show player")
+# setup arg parser
+parser.add_argument('video_file', help="Specify a video file to create a lightshow from")
+parser.add_argument('-n', '--num_leds', default=100, type=int, help="The number of LEDs of the LED strip. Will define the number of colors inside each frame.")      # option that takes a value
+parser.add_argument('-o', '--output', default='output.json', help="The output json file to which the light show will be written. Default: 'output.json'")      # option that takes a value
+parser.add_argument('-v', '--verbose', action='store_true', help="Enable verbose logging")  # on/off flag
+parser.add_argument('--supress_live_view', action='store_true', help="Disable the live viewing window")
 def main():
-    cap = cv2.VideoCapture(VIDEO_PATH)
+    # handle cmdline args
+    args = parser.parse_args()
+
+    if(args.verbose):
+        logging.basicConfig()
+        logging.getLogger().setLevel(logging.DEBUG)
+
+    cap = cv2.VideoCapture(args.video_file)
     show = Lightshow()
     show.frames = [[]] # initialize frames for one device
+
+    print("Converting video...")
     while cap.isOpened():
 
         # NOTE: We need to get it BEFORE reading the actual frame to be correct
@@ -36,24 +48,17 @@ def main():
 
         ret, frame = cap.read()
         if not ret:
-            print("Can't receive frame (stream end?). Exiting ...")
+            print("Video end reached.")
             break
-        
-        #cv2.imshow('frame', frame)
-
-
 
         # rescale frame to n x 1 resolution
-        resized_frame = cv2.resize(frame, (NUM_LEDS,1))
-
+        resized_frame = cv2.resize(frame, (args.num_leds,1))
         AddFrameToLightshow(show, list(resized_frame)[0], timestamp)
 
-        #cv2.imshow('frame', resized_frame)
-        #print(f"Resized frame: {timestamp}ms")
-        #print(resized_frame)
-
-        reresized_frame = cv2.resize(resized_frame, None, fx=25, fy = 25)
-        cv2.imshow('frame', reresized_frame)
+        # provide a live view of what's currently processed
+        if not args.supress_live_view:
+            reresized_frame = cv2.resize(resized_frame, None, fx=25, fy = 25)
+            cv2.imshow('frame', reresized_frame)
 
         if cv2.waitKey(1) == ord('q'):
             break
@@ -61,9 +66,10 @@ def main():
     # close all cv2 related stuff
     cap.release()
     cv2.destroyAllWindows()
-
+    print("Converting to JSON")
     # export the lightshow as json
-    show.toJson(output_path)
+    show.toJson(args.output)
+    print("Done")
 
 
 
@@ -78,6 +84,7 @@ def AddFrameToLightshow(lightshow, colors, timestamp):
     frame.timestamp = timestamp
     # NOTE: currently, this will only work for one single device
     lightshow.frames[0].append(frame)
+
 
 
 def rgbToHex(r,g,b):
