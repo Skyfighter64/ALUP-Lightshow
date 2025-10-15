@@ -1,6 +1,6 @@
 {
     "devices" : [
-        {"connection" : "tcp", "address" : "192.168.180.112", "port" : "5012"},
+        {"connection" : "tcp", "address" : "127.0.0.1", "port" : "5012"},
         {"connection" : "serial", "port" : "COM6", "baud" : "115200"}
     ],
     "timeline" : [
