@@ -3,6 +3,7 @@ import logging
 import time
 import threading
 import uuid
+import sys
 import pyalup
 from pyalup.Device import Device
 from pyalup.Frame import Frame, Command
@@ -11,19 +12,30 @@ from pyalup.Frame import Frame, Command
 
 def main():
     logging.basicConfig(format="[%(asctime)s %(levelname)s]: %(message)s", datefmt="%H:%M:%S")
-    lightshow = Lighshow()
+    lightshow = Lightshow()
     lightshow.logger.setLevel(logging.INFO)
+    #logging.getLogger(pyalup.__name__).setLevel(logging.DEBUG)
     
-    # load lightshow from json file
-    lightshow.fromJson("example.json")
+    # parse cmdline arguments
+    args = sys.argv
+    if(len(args) >= 2):
+        # load lightshow from json file
+        lightshow.fromJson(args[1])
+    else:
+        # load lightshow from example json file
+        lightshow.fromJson("example.json")
     # calibrate time stamps
     lightshow.Calibrate()
-    # run light show
-    lightshow.Run()
+    try:
+        # run light show
+        lightshow.Run()
+    except KeyboardInterrupt:
+        print("CTL + C pressed, stopping.")
 
     # disconnect devices when we are done
     for device in lightshow.devices:
         if device.connected:
+            device.Clear()
             device.Disconnect()
 
 
@@ -132,7 +144,7 @@ class Lightshow:
             # 1. load in json
             self.logger.info("Loading lightshow from file '" + str(filename) + "'")
             data = json.load(f)
-            # 2. initialize ALUP devices from json file
+            # 2. initialize ALUP devices from json file 
             self._devicesFromJson(data)
             self.logger.info("Connected to " + str(len(self.devices)) + " devices")
             # 3. Load all animation steps (one array for each device)
@@ -145,6 +157,7 @@ class Lightshow:
     def _devicesFromJson(self, data):
         for device_data in data["devices"]:
             device = Device()
+            self.logger.debug("Connecting to : " + str(device_data))
             if device_data["connection"] == "tcp":
                 # TODO: it is probably NOT a good idea to blindly connect to any given ip, is it?
                 # the animation file NEEDS to be trustworthy
