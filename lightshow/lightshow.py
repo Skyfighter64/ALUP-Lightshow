@@ -26,6 +26,14 @@ def main():
         lightshow.fromJson("example.json")
     # calibrate time stamps
     lightshow.Calibrate()
+
+    print("starting in")
+
+    # countdown
+    for i in reversed(range(4)):
+        time.sleep(1)
+        print(i)
+
     try:
         # run light show
         lightshow.Run()
