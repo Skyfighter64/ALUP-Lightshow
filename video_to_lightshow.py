@@ -21,7 +21,7 @@ Scales the given video down to one horizontal line of NUM_LED pixels. Only works
 """
 logging.basicConfig()
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.info)
+logger.setLevel(logging.INFO)
 
 parser = argparse.ArgumentParser(prog="Video To Lightshow", description="Convert video files to ALUP light shows which can be played with the light show player")
 # setup arg parser
@@ -30,7 +30,7 @@ parser.add_argument('-n', '--num_leds', default=100, type=int, help="The number 
 parser.add_argument('-o', '--output', default='output.json', help="The output json file to which the light show will be written. Default: 'output.json'")      # option that takes a value
 parser.add_argument('-v', '--verbose', action='store_true', help="Enable verbose logging")  # on/off flag
 parser.add_argument('--suppress_live_view', action='store_true', help="Disable the live viewing window")
-
+parser.add_argument('-a','--arrangement', default='arrangements/linear.bmp', help="Specify a bitmap with the positions of the LEDs. The integer color value of each pixel represents the LEDs index. White (0xffffff) pixels are ignored")
 
 def main():
     # handle cmdline args
@@ -43,15 +43,17 @@ def main():
 
 
     # read in LED arrangement
-    arrangement, arrangement_shape = ArrangementFromBitmap("arrangements/zigzag.bmp")
+    logger.info("Generating mask from arrangement " + str())
+    arrangement, arrangement_shape = ArrangementFromBitmap(args.arrangement)
+
     mask = MaskFromArrangement(arrangement, arrangement_shape)
 
-    print(mask)  
+    #logger.debug("Mask" + str(mask))  
     cap = cv2.VideoCapture(args.video_file)
     show = Lightshow()
     show.frames = [[]] # initialize frames for one device
 
-    print("Converting video...")
+    logger.info("Converting video...")
     while cap.isOpened():
 
         # NOTE: We need to get it BEFORE reading the actual frame to be correct
@@ -60,7 +62,7 @@ def main():
 
         ret, frame = cap.read()
         if not ret:
-            print("Video end reached.")
+            logger.info("Video end reached.")
             break
 
         # rescale frame to the same resolution as the arrangement
@@ -91,7 +93,7 @@ def main():
     logger.info("Converting to JSON")
     # export the lightshow as json
     show.toJson(args.output)
-    logger.info("Done")
+    logger.info("Done. Saved to " + str(args.output))
 
 
 # create a filter mask for 
