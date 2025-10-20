@@ -65,6 +65,7 @@ def main():
             logger.info("Video end reached.")
             break
 
+
         # rescale frame to the same resolution as the arrangement
         resized_frame = cv2.resize(frame, arrangement_shape)
         resized_frame = cv2.bitwise_and(resized_frame, mask)
@@ -82,7 +83,8 @@ def main():
 
             # show the raw color output for debug purposes
             if (logger.level <= logging.DEBUG):
-                cv2.imshow("colors", cv2.resize(np.array([colors]), None, fx=25, fy = 25, interpolation = cv2.INTER_NEAREST))
+                #
+                cv2.imshow("colors", cv2.resize(cv2.cvtColor(np.array([colors]), cv2.COLOR_RGB2BGR), None, fx=25, fy = 25, interpolation = cv2.INTER_NEAREST))
 
         if cv2.waitKey(1) == ord('q'):
             break
@@ -108,12 +110,13 @@ def MaskFromArrangement(arrangement, shape):
 
 # sample from a frame using the given arrangement tuples (index, x, y)
 def SampleFromFrame(frame, arrangement):
+    rgb_frame =  cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     colors = [None for _ in range(len(arrangement))]
     for led in arrangement:
         index = led[0]
         x = led[1]
         y = led[2]
-        colors[index] = frame[y][x]
+        colors[index] = rgb_frame[y][x]
 
     return colors
 
