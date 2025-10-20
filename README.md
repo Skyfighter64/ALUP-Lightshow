@@ -34,9 +34,12 @@ I found it best to use GIMP to create the arrangement Bitmaps, even though it is
 ### Example arrangement bitmap for a linear 100-LED pattern:
 <img src="./arrangements/linear.bmp" alt="Linear arrangement" width=100%  style="image-rendering: pixelated; image-rendering: crisp-edges;">
 
-### Example arrangement bitmap for a custom zig-zag pattern:
-<img src="./arrangements/zigzag.bmp" alt="Zig-zag arrangement" width=50%  style="image-rendering: pixelated; image-rendering: crisp-edges;">
+Github might have issues displaying these images correctly. See `./arrangements/linear.bmp` for unblurry version.
 
+### Example arrangement bitmap for a custom zig-zag pattern:
+<img src="./arrangements/zigzag.bmp" alt="Zig-zag arrangement" width=400  style="image-rendering: pixelated; image-rendering: crisp-edges;">
+
+Github might have issues displaying these images correctly. See `./arrangements/zigzag.bmp` for unblurry version.
 
 ## Manual Lightshow Configuration:
 Define a json file with:
