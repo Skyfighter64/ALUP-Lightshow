@@ -6,7 +6,7 @@ from pyalup.Device import Device
 import logging
 
 sct = mss()
-logging.basicConfig()
+logging.basicConfig(level=logging.INFO)
 
 def main():
     arrangement = Arrangement()
@@ -45,11 +45,19 @@ class Ambilight():
     def Run(self):
         while True:
             # screen grab the main monitor
-            sct_img = sct.grab(sct.monitors[self.monitor])
-            cv2.imshow('screen', cv2.resize(np.array(sct_img), None, fx=0.5, fy=0.5))
+            sct_img = np.array(sct.grab(sct.monitors[self.monitor]))
+            cv2.imshow('screen', cv2.resize(sct_img, None, fx=0.5, fy=0.5))
+
+            rgb_frame = cv2.cvtColor(sct_img, cv2.COLOR_RGBA2RGB)
 
             # get colors from frame according to arrangement
-            colors = self._SampleFromFrame(np.array(sct_img), self.arrangement)
+            colors = self._SampleFromFrame(rgb_frame, self.arrangement)
+
+            if (self.logger.level <= logging.INFO):
+                # show the extracted LED colors separately
+                masked_frame = self.arrangement.MaskFrame(rgb_frame)
+
+                cv2.imshow("colors", cv2.resize(masked_frame, None, fx=25, fy = 25, interpolation = cv2.INTER_NEAREST))
             # send to ALUP Receiver
             self.device.SetColors(colors)
             self.device.Send()
@@ -61,11 +69,7 @@ class Ambilight():
     # sample from a frame using the given arrangement tuples (index, x, y)
     def _SampleFromFrame(self, frame, arrangement):
         # resize to arrangement shape
-        frame = cv2.resize(frame,arrangement.shape)
-        # convert bgr to RGB
-        # HACK: something is wrong when not converting TODO: fix this 
-        rgb_frame =  cv2.cvtColor(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB), cv2.COLOR_RGB2BGR)
-
+        rgb_frame = cv2.resize(frame,arrangement.shape)
         # extract color values
         colors = [0 for _ in range(len(arrangement.coordinates))]
 
