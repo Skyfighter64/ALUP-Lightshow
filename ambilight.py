@@ -5,26 +5,30 @@ from PIL import Image
 from pyalup.Device import Device 
 import logging
 
+import cProfile
+
+
 sct = mss()
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig()
 
 def main():
     arrangement = Arrangement()
-    arrangement.FromBitmap("./arrangements/zigzag.bmp")
+    #arrangement.FromBitmap("./arrangements/zigzag.bmp")
+    arrangement.Linear(30)
 
     device = Device()
-    device.SerialConnect(port="COM6", baud=115200)
-
+    #device.SerialConnect(port="COM6", baud=115200)
+    device.SerialConnect(port="COM6", baud=250000)
 
     ambilight = Ambilight(device, arrangement)
+    ambilight.logger.setLevel(logging.INFO)
 
-    try:
-        ambilight.Run()
-    except KeyboardInterrupt:
-        device.Clear()
-        device.Disconnect()
-        cv2.destroyAllWindows()
-        print("CTL+C pressed")
+    profiler = cProfile.Profile()
+    profiler.runcall(ambilight.Run)
+
+    profiler.print_stats(sort='cumtime')
+        
+    
 
 
 class Ambilight():
@@ -43,33 +47,43 @@ class Ambilight():
 
 
     def Run(self):
-        while True:
-            # screen grab the main monitor
-            sct_img = np.array(sct.grab(sct.monitors[self.monitor]))
-            cv2.imshow('screen', cv2.resize(sct_img, None, fx=0.5, fy=0.5))
+        try:
+            while True:
+                # screen grab the main monitor
+                sct_img = np.array(sct.grab(sct.monitors[self.monitor]))
 
-            rgb_frame = cv2.cvtColor(sct_img, cv2.COLOR_RGBA2RGB)
 
-            # get colors from frame according to arrangement
-            colors = self._SampleFromFrame(rgb_frame, self.arrangement)
+                # convert color from CV2 convention to RGB
+                rgb_frame = cv2.cvtColor(sct_img, cv2.COLOR_RGBA2RGB)
 
-            if (self.logger.level <= logging.INFO):
-                # show the extracted LED colors separately
-                masked_frame = self.arrangement.MaskFrame(rgb_frame)
+                # get colors from frame according to arrangement
+                colors = self._SampleFromFrame(rgb_frame, self.arrangement)
 
-                cv2.imshow("colors", cv2.resize(masked_frame, None, fx=25, fy = 25, interpolation = cv2.INTER_NEAREST))
-            # send to ALUP Receiver
-            self.device.SetColors(colors)
-            self.device.Send()
+                if (self.logger.level <= logging.INFO):
+                    # show the extracted LED colors separately
+                    # convert color from CV2 convention to RGB
+                    #frame = cv2.cvtColor(rgb_frame, cv2.COLOR_RGB2BGR)
+                    masked_frame = self.arrangement.MaskFrame(rgb_frame)
+                    cv2.imshow('screen', cv2.resize(sct_img, None, fx=0.5, fy=0.5))
+                    cv2.imshow("colors", cv2.resize(masked_frame, None, fx=25, fy = 25, interpolation = cv2.INTER_NEAREST))
+                
+                # send to ALUP Receiver
+                self.device.SetColors(colors)
+                self.device.Send()
 
-            if (cv2.waitKey(1) & 0xFF) == ord('q'):
-                cv2.destroyAllWindows()
-                break
+                if (cv2.waitKey(1) & 0xFF) == ord('q'):
+                    cv2.destroyAllWindows()
+                    break
+        except KeyboardInterrupt:
+            self.device.Clear()
+            self.device.Disconnect()
+            cv2.destroyAllWindows()
+            print("CTL+C pressed")
 
     # sample from a frame using the given arrangement tuples (index, x, y)
     def _SampleFromFrame(self, frame, arrangement):
         # resize to arrangement shape
-        rgb_frame = cv2.resize(frame,arrangement.shape)
+        rgb_frame = cv2.resize(frame,arrangement.shape, interpolation=cv2.INTER_LINEAR)
         # extract color values
         colors = [0 for _ in range(len(arrangement.coordinates))]
 
@@ -86,8 +100,12 @@ class Ambilight():
     def _clamp(self, x): 
         return max(0, min(x, 255))
 
-# class for LED arrangements
+
+
 class Arrangement():
+    """
+    Class defining a 2-dimensional arrangement of LEDs
+    """
     def __init__(self):
         self.logger = logging.getLogger(__name__)
         self.shape = None # 2D shape of the arrangement (width, height)
@@ -134,6 +152,7 @@ class Arrangement():
         """
         Initialize a simple linear LED arrangement as one line from left to right
         @param n: The number of LEDs in the arrangement
+        @param offset: The offset from the first LED
         """
         self.shape = (n, 1)
         self.coordinates = [(i,i,0) for i in range(n,)]
