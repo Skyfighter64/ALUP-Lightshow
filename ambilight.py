@@ -157,6 +157,19 @@ class Arrangement():
             mask[y][x] = [255, 255, 255]
         return mask
     
+    def MaskFrame(self, frame):
+        """
+        Applies a mask according to the arrangement to the given frame
+        @param frame: A cv2 Mat or Numpy array containing image data
+        @returns: the rescaled frame with only the LEDs set to color
+        """
+        # rescale frame to arrangement resolution
+        resized_frame = cv2.resize(frame, self.shape)
+        # apply mask
+        masked_frame = cv2.bitwise_and(resized_frame, self.GetMask())
+
+        return masked_frame
+    
     
 def _RGBToInt(rgb):
     color = 0
