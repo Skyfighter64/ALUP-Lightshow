@@ -125,6 +125,15 @@ class Arrangement():
 
                 self.coordinates.append((index, x, y))
 
+
+    def Linear(self, n: int):
+        """
+        Initialize a simple linear LED arrangement as one line from left to right
+        @param n: The number of LEDs in the arrangement
+        """
+        self.shape = (n, 1)
+        self.coordinates = [(i,i,0) for i in range(n,)]
+
     def _FindIndex(self, index):
         """
         Finds the first coordinate with the given index in coordinates and returns it.
