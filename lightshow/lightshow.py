@@ -4,39 +4,48 @@ import time
 import threading
 import uuid
 import sys
+import argparse
 import pyalup
 from pyalup.Device import Device
 from pyalup.Frame import Frame, Command
 
 
+parser = argparse.ArgumentParser(prog="Lightshow Player", description="Play back lightshow JSON files")
+# setup arg parser
+parser.add_argument('lightshow_file', help="Specify a JSON file containing a light show")
+parser.add_argument('-c', '--countdown', default=0, type=int, help="Show a countdown in seconds before the light show starts") 
+parser.add_argument('--loop', action='store_true', help="Loop the light show indefinitely") 
+parser.add_argument('-v', '--verbose', action='store_true', help="Enable verbose logging") 
+parser.add_argument('--speed', default=1, type=float, help="The playback speed multiplier. Default 1") 
 
 def main():
+    args = parser.parse_args()
+
     logging.basicConfig(format="[%(asctime)s %(levelname)s]: %(message)s", datefmt="%H:%M:%S")
+
     lightshow = Lightshow()
     lightshow.logger.setLevel(logging.INFO)
-    #logging.getLogger(pyalup.__name__).setLevel(logging.DEBUG)
+
+    if(args.verbose):
+        lightshow.logger.setLevel(logging.DEBUG)
     
-    # parse cmdline arguments
-    args = sys.argv
-    if(len(args) >= 2):
-        # load lightshow from json file
-        lightshow.fromJson(args[1])
-    else:
-        # load lightshow from example json file
-        lightshow.fromJson("example.json")
+     # load lightshow from json file
+    lightshow.fromJson(args.lightshow_file)
+
     # calibrate time stamps
     lightshow.Calibrate()
 
-    print("starting in")
-
     # countdown
-    for i in reversed(range(4)):
-        time.sleep(1)
-        print(i)
+    if (args.countdown > 0):
+        print("----[ Starting in: ]----")
+        for i in reversed(range(args.countdown + 1)):
+            time.sleep(1)
+            print(i)
 
     try:
         # run light show
-        lightshow.Run()
+        while (args.loop):
+            lightshow.Run(args.speed)
     except KeyboardInterrupt:
         print("CTL + C pressed, stopping.")
 
@@ -60,10 +69,10 @@ class Lightshow:
         pass
     
     
-    def Run(self):
+    def Run(self, speed=1):
         # initialize start time 
         self.t_start = time.time_ns() // 1000000
-        self.logger.info("Start running lightshow")
+        self.logger.info(f"Start running lightshow at {speed}x speed")
         self.logger.info("at " + str(time.strftime('%d.%m.%y %Hh:%Mm:%Ss', time.gmtime(self.t_start / 1000))))
 
         self.logger.debug("Registering threads")
@@ -71,8 +80,10 @@ class Lightshow:
         threads = []
         # configure one thread for each device
         for i, device in enumerate(self.devices):
-            thread = threading.Thread(target=self._RunLightshow(device, self.frames[i]))
+            thread = threading.Thread(target=self._RunLightshow(device, self.frames[i], speed))
             threads.append(thread)
+
+        self.logger.debug(f"Registered {len(self.devices)} thread(s)")
 
         # start all threads
         self.logger.debug("Starting threads")
@@ -85,23 +96,30 @@ class Lightshow:
             thread.join()
 
         # wait for all outstanding answers
-        self.logger.debug("Flushing buffer for device " + str(device.configuration.deviceName))
+
         for device in self.devices:
+            self.logger.debug("Flushing buffer for device " + str(device.configuration.deviceName))
             device.FlushBuffer()
 
         self.logger.info("Done.")
         
 
-    def _RunLightshow(self, device, frames):
+    def _RunLightshow(self, device, frames, speed = 1):
         # calibrate time synchronization
-        device.Calibrate()
+        #self.logger.debug("Calibrating device")
+        #device.Calibrate()
+        self.logger.debug(f"Playing {len(frames)} frames")
         for frame in frames:
             # make timestamp relative to start point in time
             # NOTE: we used a hack previously to store the relative time in the time stamp
-            frame.timestamp = frame.timestamp + self.t_start
+            frame.timestamp = (frame.timestamp // speed) + self.t_start
             device.frame = frame
             device.Send()
+            
             self.logger.debug("Sent frame to device " + str(device.configuration.deviceName) + "\n"+ str(frame))
+            # remove the start time again to preserve relative time for next run
+            # NOTE: this only works because ALUP makes a copy of the frame before sending
+            frame.timestamp -= self.t_start 
         # wait for all outstanding answers
         self.logger.debug("Flushing buffer for device " + str(device.configuration.deviceName))
 
