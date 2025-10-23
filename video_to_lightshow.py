@@ -12,6 +12,7 @@ SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
 from lightshow.lightshow import Lightshow
+from lightshow.arrangement import Arrangement
 
 """
 
@@ -43,10 +44,12 @@ def main():
 
 
     # read in LED arrangement
-    logger.info("Generating mask from arrangement " + str())
-    arrangement, arrangement_shape = ArrangementFromBitmap(args.arrangement)
+    logger.info("Generating arrangement from bitmap " + str(args.arrangement))
+    arrangement = Arrangement()
+    arrangement.FromBitmap(args.arrangement)
+    #arrangement, arrangement_shape = ArrangementFromBitmap(args.arrangement)
 
-    mask = MaskFromArrangement(arrangement, arrangement_shape)
+    mask = arrangement.GetMask()
 
     #logger.debug("Mask" + str(mask))  
     cap = cv2.VideoCapture(args.video_file)
@@ -83,7 +86,6 @@ def main():
 
             # show the raw color output for debug purposes
             if (logger.level <= logging.DEBUG):
-                #
                 cv2.imshow("colors", cv2.resize(cv2.cvtColor(np.array([colors]), cv2.COLOR_RGB2BGR), None, fx=25, fy = 25, interpolation = cv2.INTER_NEAREST))
 
         if cv2.waitKey(1) == ord('q'):
@@ -98,66 +100,16 @@ def main():
     logger.info("Done. Saved to " + str(args.output))
 
 
-# create a filter mask for 
-def MaskFromArrangement(arrangement, shape):
-    mask = np.zeros((shape[1], shape[0], 3), dtype=np.uint8)
-    for led in arrangement:
-        x = led[1]
-        y = led[2]
-        mask[y][x] = [255, 255, 255]
-
-    return mask
-
 # sample from a frame using the given arrangement tuples (index, x, y)
 def SampleFromFrame(frame, arrangement):
     rgb_frame =  cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    colors = [None for _ in range(len(arrangement))]
-    for led in arrangement:
+    colors = [None for _ in range(len(arrangement.coordinates))]
+    for led in arrangement.coordinates:
         index = led[0]
         x = led[1]
         y = led[2]
         colors[index] = rgb_frame[y][x]
-
     return colors
-
-
-
-# get the LED arrangement from a bitmap where the integer color value
-# represents the index of the LED at a 2d position
-# eg: the position at the pixel with color 0x000001 will be the position at which the color of the LED with index 1 is sampled.
-# returns list((index, x, y)), (width, height)
-def ArrangementFromBitmap( file):
-    image = cv2.imread(file)
-
-    if image is None:
-        logger.error("Could not read Arrangement from file " + str(file))
-        return [], (0,0)
-
-    # convert the shape to (width, height)
-    shape = (image.shape[1], image.shape[0])
-
-    # read in all pixels and add coordinates to LED mask
-    arrangement = []
-
-    # extract the coordinates for each led from the image
-    for y in range(shape[1]):
-        for x in range(shape[0]):
-            # convert the color of the pixel to an RGB index
-            index = RGBToInt(image[y][x])
-
-            # ignore white pixels
-            if (index == 0xffffff):
-                continue
-
-            arrangement.append((index, x, y))
-    return arrangement, shape
-
-def RGBToInt(rgb):
-    color = 0
-    for c in rgb[::-1]:
-        color = (color<<8) + c
-    return color
-
 
 
 
@@ -172,8 +124,6 @@ def AddFrameToLightshow(lightshow, colors, timestamp):
     frame.timestamp = timestamp
     # NOTE: currently, this will only work for one single device
     lightshow.frames[0].append(frame)
-
-
 
 
 
