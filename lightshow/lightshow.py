@@ -3,58 +3,10 @@ import logging
 import time
 import threading
 import uuid
-import sys
-import argparse
 import pyalup
 from pyalup.Device import Device
 from pyalup.Frame import Frame, Command
-
-
-parser = argparse.ArgumentParser(prog="Lightshow Player", description="Play back lightshow JSON files")
-# setup arg parser
-parser.add_argument('lightshow_file', help="Specify a JSON file containing a light show")
-parser.add_argument('-c', '--countdown', default=0, type=int, help="Show a countdown in seconds before the light show starts") 
-parser.add_argument('--loop', action='store_true', help="Loop the light show indefinitely") 
-parser.add_argument('-v', '--verbose', action='store_true', help="Enable verbose logging") 
-parser.add_argument('--speed', default=1, type=float, help="The playback speed multiplier. Default 1") 
-
-def main():
-    args = parser.parse_args()
-
-    logging.basicConfig(format="[%(asctime)s %(levelname)s]: %(message)s", datefmt="%H:%M:%S")
-
-    lightshow = Lightshow()
-    lightshow.logger.setLevel(logging.INFO)
-
-    if(args.verbose):
-        lightshow.logger.setLevel(logging.DEBUG)
-    
-     # load lightshow from json file
-    lightshow.fromJson(args.lightshow_file)
-
-    # calibrate time stamps
-    lightshow.Calibrate()
-
-    # countdown
-    if (args.countdown > 0):
-        print("----[ Starting in: ]----")
-        for i in reversed(range(args.countdown + 1)):
-            time.sleep(1)
-            print(i)
-
-    try:
-        # run light show
-        while (args.loop):
-            lightshow.Run(args.speed)
-    except KeyboardInterrupt:
-        print("CTL + C pressed, stopping.")
-
-    # disconnect devices when we are done
-    for device in lightshow.devices:
-        if device.connected:
-            device.Clear()
-            device.Disconnect()
-
+from tqdm import tqdm
 
 
 class Lightshow:
@@ -248,5 +200,3 @@ class NoIndentEncoder(json.JSONEncoder):
         return result
     
 
-if __name__=="__main__":
-    main()
