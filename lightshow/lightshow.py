@@ -18,7 +18,8 @@ class Lightshow:
 
         # start time of the lightshow in ms
         self.t_start = 0
-        pass
+        self._skip_late_frames = True
+
     
     
     def Run(self, speed=1):
@@ -26,6 +27,7 @@ class Lightshow:
         self.t_start = time.time_ns() // 1000000
         self.logger.info(f"Start running lightshow at {speed}x speed")
         self.logger.info("at " + str(time.strftime('%d.%m.%y %Hh:%Mm:%Ss', time.gmtime(self.t_start / 1000))))
+
 
         self.logger.debug("Registering threads")
         # register threads for each device
@@ -61,19 +63,40 @@ class Lightshow:
         #self.logger.debug("Calibrating device")
         #device.Calibrate()
         self.logger.debug(f"Playing {len(frames)} frames")
-        for frame in frames:
+
+        # enable progress bar for log level INFO and below
+        if self.logger.level <= logging.INFO:
+            _frames = tqdm(frames)
+        else:
+            _frames = frames 
+
+        # track number of skipped frames 
+        skipped_frames = 0
+
+        for frame in _frames:
             # make timestamp relative to start point in time
             # NOTE: we used a hack previously to store the relative time in the time stamp
+            relative_timestamp = frame.timestamp
             frame.timestamp = (frame.timestamp // speed) + self.t_start
+
+            # ignore frame if already too late
+            self.logger.debug(f"Frame time stamp: {frame.timestamp}, now: {time.time() * 1000}, device latency: {device.latency}, Skipping frame? {frame.timestamp <= (time.time()* 1000) + device.latency//2}")
+            if(self._skip_late_frames and frame.timestamp <= (time.time() * 1000) + device.latency//2):
+                # reset the time stamp to the relative time stamp
+                # NOTE: this only works because ALUP makes a copy of the frame before sending
+                frame.timestamp = relative_timestamp
+                skipped_frames += 1
+                self.logger.debug("Connection too slow; Skipping frame")
+                continue
+
             device.frame = frame
             device.Send()
             
             self.logger.debug("Sent frame to device " + str(device.configuration.deviceName) + "\n"+ str(frame))
-            # remove the start time again to preserve relative time for next run
+            # reset the time stamp to the relative time stamp
             # NOTE: this only works because ALUP makes a copy of the frame before sending
-            frame.timestamp -= self.t_start 
-        # wait for all outstanding answers
-        self.logger.debug("Flushing buffer for device " + str(device.configuration.deviceName))
+            frame.timestamp = relative_timestamp
+        self.logger.info(f"Device {device.configuration.deviceName} skipped {skipped_frames} frames total ({skipped_frames / len(frames)}%)")
 
     # calibrate time synchronization for all devices
     def Calibrate(self):
