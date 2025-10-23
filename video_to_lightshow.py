@@ -96,7 +96,7 @@ def main():
     cv2.destroyAllWindows()
     logger.info("Converting to JSON")
     # export the lightshow as json
-    show.toJson(args.output)
+    show.toJson(args.output, comments=[f"Converted from {Path(args.video_file).name}", f"Arrangement: {Path(args.arrangement).name}"])
     logger.info("Done. Saved to " + str(args.output))
 
 
