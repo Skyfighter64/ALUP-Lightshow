@@ -85,18 +85,25 @@ class Lightshow:
         
 
     # convert the lightshow to a json file and save it to the given pat
-    def toJson(self, output_path):
+    def toJson(self, output_path, comments = None):
         #print(json.dumps(self))
         data = {
-            # NOTE: devices cannot be converted yet because connection parameters are not saved
-            # For now: add them by hand to json file
-            "devices" : [],
+            "devices" : self._DevicesToJSON,
             "timeline" : self._FramesToJson()
         }
+        if (comments is not None):
+            data['comments'] = comments
+
+        data['devices'] = self._DevicesToJSON()
+        data['timeline'] = self._FramesToJson()
         json_string = json.dumps(data, cls=NoIndentEncoder, indent=4)
         with open(output_path, "w+") as f:
             f.write(json_string)
         
+
+    def _DevicesToJSON(self):
+        # TODO not implemented yet
+        return []
 
     # convert all frames of this lightshow to json format
     def _FramesToJson(self):
