@@ -7,6 +7,7 @@ import time
 import logging
 import argparse
 from pyalup.Frame import Frame 
+from pathlib import Path
 
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
@@ -54,6 +55,9 @@ def main():
     #logger.debug("Mask" + str(mask))  
     cap = cv2.VideoCapture(args.video_file)
     show = Lightshow()
+    # choose interpolation mode 
+    interpolation = cv2.INTER_AREA
+
     show.frames = [[]] # initialize frames for one device
 
     logger.info("Converting video...")
@@ -70,7 +74,7 @@ def main():
 
 
         # rescale frame to the same resolution as the arrangement
-        resized_frame = cv2.resize(frame, arrangement_shape)
+        resized_frame = cv2.resize(frame, arrangement.shape, interpolation=interpolation)
         resized_frame = cv2.bitwise_and(resized_frame, mask)
 
         # sample from the frame based on the LED positions defined in the arrangement
