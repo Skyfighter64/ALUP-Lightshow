@@ -8,12 +8,14 @@ import logging
 import argparse
 from pyalup.Frame import Frame 
 from pathlib import Path
+from enum import IntEnum
 
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
 from lightshow.lightshow import Lightshow
 from lightshow.arrangement import Arrangement
+from lightshow.postprocessing import Postprocessing
 
 """
 
@@ -25,16 +27,19 @@ logging.basicConfig()
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-parser = argparse.ArgumentParser(prog="Video To Lightshow", description="Convert video files to ALUP light shows which can be played with the light show player")
-# setup arg parser
-parser.add_argument('video_file', help="Specify a video file to create a lightshow from")
-parser.add_argument('-n', '--num_leds', default=100, type=int, help="The number of LEDs of the LED strip. Will define the number of colors inside each frame.")      # option that takes a value
-parser.add_argument('-o', '--output', default='output.json', help="The output json file to which the light show will be written. Default: 'output.json'")      # option that takes a value
-parser.add_argument('-v', '--verbose', action='store_true', help="Enable verbose logging")  # on/off flag
-parser.add_argument('--suppress_live_view', action='store_true', help="Disable the live viewing window")
-parser.add_argument('-a','--arrangement', default='arrangements/linear.bmp', help="Specify a bitmap with the positions of the LEDs. The integer color value of each pixel represents the LEDs index. White (0xffffff) pixels are ignored")
 
 def main():
+    parser = argparse.ArgumentParser(prog="Video To Lightshow", description="Convert video files to ALUP light shows which can be played with the light show player", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    # setup arg parser
+    parser.add_argument('video_file', help="Specify a video file to create a lightshow from")
+    parser.add_argument('-n', '--num_leds', default=10, type=int, help="Use a linear arrangement with n LEDs. Ignored if -a | --arrangement is used")   
+    parser.add_argument('-o', '--output', default='output.json', help="The output json file to which the light show will be written.")
+    parser.add_argument('-v', '--verbose', action='store_true', help="Enable verbose logging")  # on/off flag
+    parser.add_argument('--suppress_live_view', action='store_true', help="Disable the live viewing window")
+    parser.add_argument('--no_postprocessing', action='store_true', help="Disable postprocessing steps such as Contrast normailization")
+    parser.add_argument('-a','--arrangement', default=None, help="Specify a bitmap file with the positions of the LEDs. The integer color value of each pixel represents the LEDs index. White (0xffffff) pixels are ignored")
+    parser.add_argument('-i', '--interpolation', choices=[i.name for i in  InterpolationMode],default=InterpolationMode.area.name, help="Select an interpolation mode for conversion.")
+
     # handle cmdline args
     args = parser.parse_args()
 
@@ -43,11 +48,18 @@ def main():
         logging.getLogger().setLevel(logging.DEBUG)
         logger.setLevel(logging.DEBUG)
 
+    # choose interpolation mode 
+    interpolation = InterpolationMode[args.interpolation].value
+
 
     # read in LED arrangement
     logger.info("Generating arrangement from bitmap " + str(args.arrangement))
     arrangement = Arrangement()
-    arrangement.FromBitmap(args.arrangement)
+    
+    if(args.arrangement is not None):
+        arrangement.FromBitmap(args.arrangement)
+    else:
+        arrangement.Linear(args.num_leds)
     #arrangement, arrangement_shape = ArrangementFromBitmap(args.arrangement)
 
     mask = arrangement.GetMask()
@@ -55,8 +67,6 @@ def main():
     #logger.debug("Mask" + str(mask))  
     cap = cv2.VideoCapture(args.video_file)
     show = Lightshow()
-    # choose interpolation mode 
-    interpolation = cv2.INTER_AREA
 
     show.frames = [[]] # initialize frames for one device
 
@@ -98,9 +108,16 @@ def main():
     # close all cv2 related stuff
     cap.release()
     cv2.destroyAllWindows()
+
+    if (not args.no_postprocessing):
+        logger.info("Doing post processing:")
+        logger.info(" - Contrast normalization")
+        show.frames[0] = Postprocessing.NormalizeContrast(show.frames[0])
+
+
     logger.info("Converting to JSON")
     # export the lightshow as json
-    show.toJson(args.output, comments=[f"Converted from {Path(args.video_file).name}", f"Arrangement: {Path(args.arrangement).name}"])
+    show.toJson(args.output, comments=[f"Converted from '{Path(args.video_file).name}'", f"Arrangement: {arrangement.name}", f"Interpolation: {args.interpolation}"])
     logger.info("Done. Saved to " + str(args.output))
 
 
@@ -124,19 +141,36 @@ def SampleFromFrame(frame, arrangement):
 # @param timestamps: the time stamp in ms of the given frame
 def AddFrameToLightshow(lightshow, colors, timestamp):
     frame = Frame()
-    frame.colors = [rgbToHex(r,g,b) for (r,g,b) in colors]
+    frame.colors = [rgbToInt(color) for color in colors]
     frame.timestamp = timestamp
+
     # NOTE: currently, this will only work for one single device
     lightshow.frames[0].append(frame)
-
 
 
 def rgbToHex(r,g,b):
     return "0x{0:02x}{1:02x}{2:02x}".format(clamp(r), clamp(g), clamp(b))
 
+def rgbToInt(rgb):
+    color = 0
+    color += rgb[2]
+    color += (rgb[1] << 8)
+    color += (rgb[0] << 16) 
+    return color
+
 def clamp(x): 
   return max(0, min(x, 255))
 
+class InterpolationMode(IntEnum):
+    linear = cv2.INTER_LINEAR
+    area = cv2.INTER_AREA
+    nearest = cv2.INTER_NEAREST
+    cubic = cv2.INTER_CUBIC
+
+    def __str__(self):
+        return self.value
+    
+    
 
 if __name__ == "__main__":
     main()
