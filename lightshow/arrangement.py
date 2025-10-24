@@ -1,6 +1,7 @@
 import logging
 import cv2
 import numpy as np
+from pathlib import Path
 
 class Arrangement():
     """
@@ -10,6 +11,7 @@ class Arrangement():
         self.logger = logging.getLogger(__name__)
         self.shape = None # 2D shape of the arrangement (width, height)
         self.coordinates = [] # array of coordinates and led Indices: (index, x, y), not necessarily sorted
+        self.name = "" # name of the arrangement; should be descriptive of how the LEDs are arranged
 
     def FromBitmap(self, bitmap):
         """
@@ -20,6 +22,8 @@ class Arrangement():
         """
         self.logger.info("Loading arrangement from bitmap " + str(bitmap))
         image = cv2.imread(bitmap)
+
+        self.name = Path(bitmap).name
 
         if image is None:
             self.logger.error("Could not read Arrangement from file " + str(bitmap))
@@ -55,6 +59,7 @@ class Arrangement():
         @param offset: The offset from the first LED
         @param height: The y-position of the arrangement. Default 0
         """
+        self.name = f"Linear ({n})"
         self.shape = (n, 1 + height)
         self.coordinates = [(i,i, height) for i in range(n,)]
 
