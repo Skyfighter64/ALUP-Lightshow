@@ -138,7 +138,7 @@ class Lightshow:
                         "device" : i,
                         "offset" : frame.offset,
                         "command" : frame.command.name,
-                        "colors" : [str(color) for color in frame.colors]
+                        "colors" : [self._intColorToHexString(color) for color in frame.colors]
                         }))
         return out
 
@@ -197,6 +197,9 @@ class Lightshow:
             # add frame to frame list for the device
             self.frames[frame_data["device"]].append(frame)
             self.logger.debug("Loaded frame: " + str(frame))
+
+    def _intColorToHexString(self, color):
+        return "0x{0:06x}".format(color)
 
 
 """
