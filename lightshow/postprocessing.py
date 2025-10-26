@@ -3,6 +3,8 @@ import colorsys
 
 from pyalup.Frame import Frame
 
+from .util import Convert 
+
 class Postprocessing:
     """
     Class with a collection of functions for filtering one or a list of ALUP frames
@@ -27,7 +29,7 @@ class Postprocessing:
         for frame in frames:
             for j in range(len(frame.colors)):
                 # convert to HSV
-                pixel = Postprocessing.intToRGB(frame.colors[j])
+                pixel = Convert.intToRGB(frame.colors[j])
                 pixel = colorsys.rgb_to_hsv(pixel[0] / 255, pixel[1] / 255, pixel[2] / 255)
 
                 # save the brightest and darkest pixel value of all frames
@@ -42,7 +44,7 @@ class Postprocessing:
         for frame in frames:
             for j in range(len(frame.colors)):
                 # get the current pixel value
-                pixel = Postprocessing.intToRGB(frame.colors[j])
+                pixel = Convert.intToRGB(frame.colors[j])
                 #print(f"input pixel {pixel}")
                 pixel = colorsys.rgb_to_hsv(pixel[0] / 255, pixel[1] / 255, pixel[2] / 255)
                 #print(f"hsv input pixel {pixel}")
@@ -54,7 +56,7 @@ class Postprocessing:
                 pixel = [int(i * 255) for i in pixel ]
         
                 # replace old pixel
-                frame.colors[j] = Postprocessing.rgbToInt(pixel)
+                frame.colors[j] = Convert.rgbToInt(pixel)
 
         return frames
     
@@ -70,7 +72,7 @@ class Postprocessing:
         for frame in frames:
             for j in range(len(frame.colors)):
                 # convert to HSV
-                pixel = Postprocessing.intToRGB(frame.colors[j])
+                pixel = Convert.intToRGB(frame.colors[j])
                 pixel = colorsys.rgb_to_hsv(pixel[0] / 255, pixel[1] / 255, pixel[2] / 255)
 
                 # save the brightest and darkest pixel value of all frames
@@ -80,41 +82,8 @@ class Postprocessing:
 
         return frames
 
-                 
-
-    @abc.abstractmethod   
-    def rgbToInt(rgb):
-        color = 0
-        color += rgb[2]
-        color += (rgb[1] << 8)
-        color += (rgb[0] << 16) 
-        return color
-    
-    @abc.abstractmethod   
-    def intToRGB(color):
-        b =  color & 255
-        g = (color >> 8) & 255
-        r = (color >> 16) & 255
-        return [r,g,b]
-    
-    @abc.abstractmethod   
-    def clamp(x): 
-        return max(0, min(x, 255))
-
 
 def test():
-    # test rgb to int
-    assert Postprocessing.rgbToInt([255,255,255]) == 0xffffff
-    assert Postprocessing.rgbToInt([0,255,255]) == 0x00ffff
-    assert Postprocessing.rgbToInt([255,0,255]) == 0xff00ff
-    assert Postprocessing.rgbToInt([255,255,0]) == 0xffff00
-
-    # test int to rgb
-    assert Postprocessing.intToRGB(0xffffff) == [255,255,255]
-    assert Postprocessing.intToRGB(0x00ffff) == [0,255,255]
-    assert Postprocessing.intToRGB(0xff00ff) == [255,0,255]
-    assert Postprocessing.intToRGB(0xffff00) == [255,255,0]
-
     # test high pass
     frame = Frame()
     frame.colors = [0x000000, 0x000a00, 0x000030, 0x020000, 0xffffff]
