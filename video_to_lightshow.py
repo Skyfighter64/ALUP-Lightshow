@@ -103,19 +103,21 @@ def main():
             if (logger.level <= logging.DEBUG):
                 cv2.imshow("colors", cv2.resize(cv2.cvtColor(np.array([colors]), cv2.COLOR_RGB2BGR), None, fx=25, fy = 25, interpolation = cv2.INTER_NEAREST))
 
-        if cv2.waitKey(1) == ord('q'):
-            break
+            if cv2.waitKey(1) == ord('q'):
+                break
 
     if (not args.no_postprocessing):
         logger.info("Doing post processing:")
         logger.info(" - Contrast normalization")
-        show.frames[0] = Postprocessing.NormalizeContrast(show.frames[0])
+        for frames in show.frames:
+         frames = Postprocessing.NormalizeContrast(frames)
 
     # show the final result for debug purposes
     if (logger.level <= logging.DEBUG):
         for frame in show.frames[0]:
-             print(frame.colors)
-             cv2.imshow("colors", cv2.resize(cv2.cvtColor(np.array([Convert.intToRGB(color) for color in frame.colors]), cv2.COLOR_RGB2BGR), None, fx=25, fy = 25, interpolation = cv2.INTER_NEAREST))
+            cv2.imshow("Postprocessing", cv2.resize(cv2.cvtColor(np.array([[Convert.intToRGB(color) for color in frame.colors]], dtype=np.uint8), cv2.COLOR_RGB2BGR), None, fx=25, fy = 25, interpolation = cv2.INTER_NEAREST))
+            if cv2.waitKey(30) & 0xFF == ord('q'):
+                break
 
 
     # close all cv2 related stuff
