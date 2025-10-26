@@ -103,8 +103,7 @@ class Postprocessing:
 
 
 def test():
-    # TODO: adapt tests to ALUP frames
-    # test rgb to int   
+    # test rgb to int
     assert Postprocessing.rgbToInt([255,255,255]) == 0xffffff
     assert Postprocessing.rgbToInt([0,255,255]) == 0x00ffff
     assert Postprocessing.rgbToInt([255,0,255]) == 0xff00ff
@@ -117,11 +116,20 @@ def test():
     assert Postprocessing.intToRGB(0xffff00) == [255,255,0]
 
     # test high pass
-    assert Postprocessing.HighPass([[0x000000, 0x000a00, 0x000030, 0x020000, 0xffffff]], 128) == [[0x000000, 0x000000, 0x000000, 0x000000, 0xffffff]]
+    frame = Frame()
+    frame.colors = [0x000000, 0x000a00, 0x000030, 0x020000, 0xffffff]
+    result = Postprocessing.HighPass([frame], 128)
+    assert result[0].colors == [0x000000, 0x000000, 0x000000, 0x000000, 0xffffff]
 
     # test normalization
-    assert Postprocessing.NormalizeContrast([[0x000000, 0x00ff00, 0x0000ff, 0xff0000, 0xffffff]]) == [[0x000000, 0x00ff00, 0x0000ff, 0xff0000, 0xffffff]]
-    assert Postprocessing.NormalizeContrast([[0x000000, 0x004400, 0x000044, 0x440000, 0x444444]]) == [[0x000000, 0x00ff00, 0x0000ff, 0xff0000, 0xffffff]]
+    frame = Frame()
+    frame.colors = [0x000000, 0x00ff00, 0x0000ff, 0xff0000, 0xffffff]
+    result =  Postprocessing.NormalizeContrast([frame])[0]
+    assert result.colors == [0x000000, 0x00ff00, 0x0000ff, 0xff0000, 0xffffff]
+
+    frame.colors = [0x000000, 0x004400, 0x000044, 0x440000, 0x444444]
+    result =  Postprocessing.NormalizeContrast([frame])[0]
+    assert result.colors ==[0x000000, 0x00ff00, 0x0000ff, 0xff0000, 0xffffff]
 
 
 if __name__ == "__main__":
