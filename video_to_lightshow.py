@@ -36,7 +36,7 @@ def main():
     parser.add_argument('-n', '--num_leds', default=10, type=int, help="Use a linear arrangement with n LEDs. Ignored if -a | --arrangement is used")   
     parser.add_argument('-o', '--output', default='output.json', help="The output json file to which the light show will be written.")
     parser.add_argument('-v', '--verbose', action='store_true', help="Enable verbose logging")  # on/off flag
-    parser.add_argument('--suppress_live_view', action='store_true', help="Disable the live viewing window")
+    parser.add_argument('--suppress_live_view', action='store_true', help="Disable the live viewing window. Makes conversion a lot faster")
     parser.add_argument('--no_postprocessing', action='store_true', help="Disable postprocessing steps such as Contrast normailization")
     parser.add_argument('-a','--arrangement', default=None, help="Specify a bitmap file with the positions of the LEDs. The integer color value of each pixel represents the LEDs index. White (0xffffff) pixels are ignored")
     parser.add_argument('-i', '--interpolation', choices=[i.name for i in  InterpolationMode],default=InterpolationMode.area.name, help="Select an interpolation mode for conversion.")
@@ -114,8 +114,9 @@ def main():
 
     # show the final result for debug purposes
     if (logger.level <= logging.DEBUG):
+        logger.info("Showing final result. Press q to on video to skip")
         for frame in show.frames[0]:
-            cv2.imshow("Postprocessing", cv2.resize(cv2.cvtColor(np.array([[Convert.intToRGB(color) for color in frame.colors]], dtype=np.uint8), cv2.COLOR_RGB2BGR), None, fx=25, fy = 25, interpolation = cv2.INTER_NEAREST))
+            cv2.imshow("Final result", cv2.resize(cv2.cvtColor(np.array([[Convert.intToRGB(color) for color in frame.colors]], dtype=np.uint8), cv2.COLOR_RGB2BGR), None, fx=25, fy = 25, interpolation = cv2.INTER_NEAREST))
             if cv2.waitKey(30) & 0xFF == ord('q'):
                 break
 
