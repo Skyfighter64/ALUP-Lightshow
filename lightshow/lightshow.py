@@ -3,11 +3,12 @@ import logging
 import time
 import threading
 import uuid
+from tqdm import tqdm
 import pyalup
 from pyalup.Device import Device
 from pyalup.Frame import Frame, Command
-from tqdm import tqdm
 
+from .util import Convert
 
 class Lightshow:
     def __init__(self):
@@ -138,7 +139,7 @@ class Lightshow:
                         "device" : i,
                         "offset" : frame.offset,
                         "command" : frame.command.name,
-                        "colors" : [self._intColorToHexString(color) for color in frame.colors]
+                        "colors" : [Convert.intColorToHex(color) for color in frame.colors]
                         }))
         return out
 
@@ -198,8 +199,7 @@ class Lightshow:
             self.frames[frame_data["device"]].append(frame)
             self.logger.debug("Loaded frame: " + str(frame))
 
-    def _intColorToHexString(self, color):
-        return "0x{0:06x}".format(color)
+
 
 
 """
