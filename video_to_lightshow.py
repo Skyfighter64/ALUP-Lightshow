@@ -158,18 +158,6 @@ def AddFrameToLightshow(lightshow, colors, timestamp):
     lightshow.frames[0].append(frame)
 
 
-def rgbToHex(r,g,b):
-    return "0x{0:02x}{1:02x}{2:02x}".format(clamp(r), clamp(g), clamp(b))
-
-def rgbToInt(rgb):
-    color = 0
-    color += rgb[2]
-    color += (rgb[1] << 8)
-    color += (rgb[0] << 16) 
-    return color
-
-def clamp(x): 
-  return max(0, min(x, 255))
 
 class InterpolationMode(IntEnum):
     linear = cv2.INTER_LINEAR
