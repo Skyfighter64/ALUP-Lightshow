@@ -20,6 +20,9 @@ class Convert():
         r = (color >> 16) & 255
         return [r,g,b]
     
+    def intColorToHex(color):
+        return "0x{0:06x}".format(color)
+
     @abc.abstractmethod   
     def rgbToHex(r,g,b):
         return "0x{0:02x}{1:02x}{2:02x}".format(Convert.clamp(r), Convert.clamp(g), Convert.clamp(b))
