@@ -16,6 +16,7 @@ sys.path.append(os.path.dirname(SCRIPT_DIR))
 from lightshow.lightshow import Lightshow
 from lightshow.arrangement import Arrangement
 from lightshow.postprocessing import Postprocessing
+from lightshow.util import Convert
 
 """
 
@@ -104,15 +105,24 @@ def main():
 
         if cv2.waitKey(1) == ord('q'):
             break
-    
-    # close all cv2 related stuff
-    cap.release()
-    cv2.destroyAllWindows()
 
     if (not args.no_postprocessing):
         logger.info("Doing post processing:")
         logger.info(" - Contrast normalization")
         show.frames[0] = Postprocessing.NormalizeContrast(show.frames[0])
+
+    # show the final result for debug purposes
+    if (logger.level <= logging.DEBUG):
+        for frame in show.frames[0]:
+             print(frame.colors)
+             cv2.imshow("colors", cv2.resize(cv2.cvtColor(np.array([Convert.intToRGB(color) for color in frame.colors]), cv2.COLOR_RGB2BGR), None, fx=25, fy = 25, interpolation = cv2.INTER_NEAREST))
+
+
+    # close all cv2 related stuff
+    cap.release()
+    cv2.destroyAllWindows()
+
+   
 
 
     logger.info("Converting to JSON")
@@ -141,7 +151,7 @@ def SampleFromFrame(frame, arrangement):
 # @param timestamps: the time stamp in ms of the given frame
 def AddFrameToLightshow(lightshow, colors, timestamp):
     frame = Frame()
-    frame.colors = [rgbToInt(color) for color in colors]
+    frame.colors = [Convert.rgbToInt(color) for color in colors]
     frame.timestamp = timestamp
 
     # NOTE: currently, this will only work for one single device
