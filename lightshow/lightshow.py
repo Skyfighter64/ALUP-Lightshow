@@ -97,7 +97,7 @@ class Lightshow:
             # reset the time stamp to the relative time stamp
             # NOTE: this only works because ALUP makes a copy of the frame before sending
             frame.timestamp = relative_timestamp
-        self.logger.info(f"Device {device.configuration.deviceName} skipped {skipped_frames} frames total ({skipped_frames / len(frames)}%)")
+        self.logger.info(f"Device {device.configuration.deviceName} skipped {skipped_frames} frames total ({1000 * skipped_frames / len(frames)}%)")
 
     # calibrate time synchronization for all devices
     def Calibrate(self):
