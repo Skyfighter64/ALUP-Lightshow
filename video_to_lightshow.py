@@ -166,7 +166,6 @@ def SampleFromFrame(frame, arrangement):
 # Format: [PORT]{:[Baud]}
 # Default Baud: 115200
 def SerialConnectionFromString(parameters : str):
-    print(parameters)
     splitted = parameters.split(':')
     port = splitted[0]
     baud = int(splitted[1]) if len(splitted) > 1 else 115200
