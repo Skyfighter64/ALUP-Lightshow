@@ -7,6 +7,9 @@ import time
 import logging
 import argparse
 from pyalup.Frame import Frame 
+from pyalup.Device import Device
+from pyalup.TcpConnection import TcpConnection
+from pyalup.SerialConnection import SerialConnection
 from pathlib import Path
 from enum import IntEnum
 
@@ -41,8 +44,20 @@ def main():
     parser.add_argument('-a','--arrangement', default=None, help="Specify a bitmap file with the positions of the LEDs. The integer color value of each pixel represents the LEDs index. White (0xffffff) pixels are ignored")
     parser.add_argument('-i', '--interpolation', choices=[i.name for i in  InterpolationMode],default=InterpolationMode.area.name, help="Select an interpolation mode for conversion.")
 
+    parser.add_argument('--serial', nargs=1, default=None, help="Specify a serial connected ALUP device to add to the light show file Format: [PORT]{:[BAUD]} eg: COM7:115200. Default Baud:115200")
+    parser.add_argument('--tcp', nargs=1, default=None, help="Specify a TCP connected ALUP device to add to the light show file. Format: [ip]{:[BAUD]} eg: 127.0.0.1:5012. Default Port: 5012")
+
     # handle cmdline args
     args = parser.parse_args()
+
+    device = Device()
+    if(args.serial is not None):
+        device.connection = SerialConnectionFromString(args.serial[0])
+    elif(args.tcp is not None):
+        device.connection = TcpConnectionFromString(args.tcp[0])
+    else:
+        # don't add device because it is not specified
+        device = None
 
     if(args.verbose):
         logging.basicConfig()
@@ -61,13 +76,15 @@ def main():
         arrangement.FromBitmap(args.arrangement)
     else:
         arrangement.Linear(args.num_leds)
-    #arrangement, arrangement_shape = ArrangementFromBitmap(args.arrangement)
-
     mask = arrangement.GetMask()
 
     #logger.debug("Mask" + str(mask))  
     cap = cv2.VideoCapture(args.video_file)
     show = Lightshow()
+
+    # add the device to the show
+    if device is not None:
+        show.devices.append(device)
 
     show.frames = [[]] # initialize frames for one device
 
@@ -145,6 +162,24 @@ def SampleFromFrame(frame, arrangement):
         colors[index] = rgb_frame[y][x]
     return colors
 
+# create an alup Serial connection from a string of connection parameters
+# Format: [PORT]{:[Baud]}
+# Default Baud: 115200
+def SerialConnectionFromString(parameters : str):
+    print(parameters)
+    splitted = parameters.split(':')
+    port = splitted[0]
+    baud = int(splitted[1]) if len(splitted) > 1 else 115200
+    return SerialConnection(port, baud)
+
+# create an alup tcp connection from a string of connection parameters
+# Format: [ip]{:[port]}
+# Default port: 5012
+def TcpConnectionFromString(parameters : str):
+    splitted = parameters.split(':')
+    ip = splitted[0]
+    port = int(splitted[1]) if len(splitted) > 1 else 5012
+    return TcpConnection(ip, port)
 
 
 # add a frame with the given colors and the given time stamp

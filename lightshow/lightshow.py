@@ -7,6 +7,8 @@ from tqdm import tqdm
 import pyalup
 from pyalup.Device import Device
 from pyalup.Frame import Frame, Command
+from pyalup.SerialConnection import SerialConnection
+from pyalup.TcpConnection import TcpConnection
 
 from .util import Convert
 
@@ -110,14 +112,9 @@ class Lightshow:
 
     # convert the lightshow to a json file and save it to the given pat
     def toJson(self, output_path, comments = None):
-        #print(json.dumps(self))
-        data = {
-            "devices" : self._DevicesToJSON,
-            "timeline" : self._FramesToJson()
-        }
+        data = {}
         if (comments is not None):
             data['comments'] = comments
-
         data['devices'] = self._DevicesToJSON()
         data['timeline'] = self._FramesToJson()
         json_string = json.dumps(data, cls=NoIndentEncoder, indent=4)
@@ -126,8 +123,15 @@ class Lightshow:
         
 
     def _DevicesToJSON(self):
-        # TODO not implemented yet
-        return []
+        devices = []
+        for device in self.devices:
+            if isinstance(device.connection,  SerialConnection):
+                devices.append(NoIndent({'connection' : 'serial', 'port' : str(device.connection.port), 'baud' : str(device.connection.baud)}))
+            elif isinstance(device.connection,  TcpConnection):
+                devices.append(NoIndent({'connection' : 'tcp', 'address' : str(device.connection.remote_ip), 'port' : str(device.connection.remote_port)}))
+            else:
+                self.logger.error("Failed to parse device connection. Unsupported device connection type "  + str(device.connection))
+        return devices
 
     # convert all frames of this lightshow to json format
     def _FramesToJson(self):
