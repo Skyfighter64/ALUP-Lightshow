@@ -174,17 +174,24 @@ class Lightshow:
             if device_data["connection"] == "tcp":
                 # TODO: it is probably NOT a good idea to blindly connect to any given ip, is it?
                 # the animation file NEEDS to be trustworthy
-                device.TcpConnect(ip=device_data["address"], port=int(device_data["port"]))
+                device.connection = TcpConnection(ip=device_data["address"], port=int(device_data["port"]))
             elif device_data["connection"] == "serial":
-                device.SerialConnect(port=device_data["port"], baud=int(device_data["baud"]))
+                device.connection = SerialConnection(port=device_data["port"], baud=int(device_data["baud"]))
             else:
                 self.logger.error("Can't connect to device: Unknown connection type: " + str(device_data["connection"]))
                 return
             # add device to lightshow
             self.devices.append(device)
-            self.logger.debug("Connected to device: " + str(device.configuration))
             # add an array to store the device's frames
             self.frames.append([])
+
+    def Connect(self):
+        for device in self.devices:
+            # establish hardware connection
+            device.connection.Connect()
+            # establish ALUP connection
+            device._AlupConnect()
+            self.logger.debug("Connected to device: " + str(device.connection) + "\n" + str(device.configuration))
 
 
     def _framesFromJson(self, data):

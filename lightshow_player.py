@@ -44,6 +44,9 @@ def main():
         logging.error("No device specified in lightshow file. Please add a device to the JSON file.")
         exit()
 
+    # establish connection
+    lightshow.Connect()
+
     # calibrate time stamps
     lightshow.Calibrate()
 
