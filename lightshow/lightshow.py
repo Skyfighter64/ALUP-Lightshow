@@ -91,7 +91,7 @@ class Lightshow:
                 skipped_frames += 1
                 self.logger.debug("Connection too slow; Skipping frame")
                 continue
-
+            
             device.frame = frame
             device.Send()
             
@@ -159,7 +159,7 @@ class Lightshow:
             data = json.load(f)
             # 2. initialize ALUP devices from json file 
             self._devicesFromJson(data)
-            self.logger.info("Connected to " + str(len(self.devices)) + " devices")
+            self.logger.info("Loaded " + str(len(self.devices)) + " devices from file")
             # 3. Load all animation steps (one array for each device)
             self._framesFromJson(data)
             self.logger.info("Loaded Frames for each device: " + str([len(i) for i in self.frames]))
@@ -186,12 +186,13 @@ class Lightshow:
             self.frames.append([])
 
     def Connect(self):
+        self.logger.info("Connecting to devices...")
         for device in self.devices:
             # establish hardware connection
             device.connection.Connect()
             # establish ALUP connection
             device._AlupConnect()
-            self.logger.debug("Connected to device: " + str(device.connection) + "\n" + str(device.configuration))
+            self.logger.info("Connected to device: " + str(device.connection) + "\n" + str(device.configuration))
 
 
     def _framesFromJson(self, data):
