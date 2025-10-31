@@ -91,14 +91,15 @@ def main():
     logger.info("Converting video...")
     while cap.isOpened():
 
-        # NOTE: We need to get it BEFORE reading the actual frame to be correct
-        # get the time stamp of the current video frame in ms
-        timestamp = int(cap.get(cv2.CAP_PROP_POS_MSEC))
+
 
         ret, frame = cap.read()
         if not ret:
             logger.info("Video end reached.")
             break
+        
+        # get the time stamp of the current video frame in ms
+        timestamp = int(cap.get(cv2.CAP_PROP_POS_MSEC))
 
 
         # rescale frame to the same resolution as the arrangement
