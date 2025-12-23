@@ -56,6 +56,8 @@ def main():
             lightshow.devices.append(Device())
             lightshow.frames.append([])
         lightshow.devices[0].connection = TcpConnectionFromString(args.tcp[0])
+        lightshow.devices[0]._FRAME_DROP_TIMEOUT = 25_000
+    
 
     # establish connection
     lightshow.Connect()
