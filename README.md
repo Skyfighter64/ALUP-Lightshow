@@ -4,7 +4,7 @@ A basic ALUP lightshow player.
 Play time stamp-based lightshows from json files to one or more ALUP LED Receivers.
 
 **NEW:**
-Generate simple light shows using `video`
+Generate simple light shows using `video_to_lightshow.py`
 
 ## Setup
 Note: Requires ALUP v.0.3
@@ -15,8 +15,8 @@ Note: Requires ALUP v.0.3
 Only use trusted light show json files, don't run files from untrused sources without verifying their contents.
 
 ## Running a light show:
-1. Change the device connection parameters to your devices in your lightshow file (eg. for `example.json: Set the IP address for Device 0 and the COM-Port for device 1 correctly)
-2. Run: `python3 lightshow/lightshow.py [filename.json]`
+1. Change the device connection parameters to your devices in your lightshow file (eg. for `example.json: Set the IP address for Device 0 and the COM-Port for device 1 correctly or specify device in cmdline options)
+2. Run: `python3 lightshow_player.py [filename.json]`
 
 ## Create a lightshow from a Video:
 Run `python3 video_to_lightshow.py [video_file.mp4] -o [output.json]` to start conversion
@@ -27,7 +27,7 @@ Run `python3 video_to_lightshow.py [video_file.mp4] -o [output.json]` to start c
 When generating lightshows from videos, custom LED arrangements are supported by using Bitmaps.\
 To do so, create a bitmap in the desired size and set the colors of individual pixels to the array indices. For example, place the color 0x000003 (R:0,G:0,B:3) anywhere on the Bitmap to set the position of the fourth pixel (with index 3) to this position. 
 
-When generating the light show, each video frame will be rescaled and interpolated to the size of the arrangement Bitmap. Therefore, pixels on small bitmaps cover more effective area than pixels on large bitmaps.
+**NOTE**: When generating the light show, each video frame will be rescaled and interpolated to the size of the arrangement Bitmap. Therefore, pixels on small bitmaps cover more effective area than pixels on large bitmaps but are effected less by small changes in the video.
 
 I found it best to use GIMP to create the arrangement Bitmaps, even though it is still tedious.
 
@@ -36,12 +36,21 @@ I found it best to use GIMP to create the arrangement Bitmaps, even though it is
 
 Github might have issues displaying these images correctly. See `./arrangements/linear.bmp` for unblurry version.
 
+**NOTE**: Linear arrangements can also be produced programmatically without the use of bitmaps. See `lightshow/arrangement.py > class Arrangement > Linear()`
+
 ### Example arrangement bitmap for a custom zig-zag pattern:
 <img src="./arrangements/zigzag.bmp" alt="Zig-zag arrangement" width=400  style="image-rendering: pixelated; image-rendering: crisp-edges;">
 
 Github might have issues displaying these images correctly. See `./arrangements/zigzag.bmp` for unblurry version.
 
+## Generate Lightshows from programs:
+To create a lightshow from a custom python program, import `lightshow/lightshow.py` into your script and create a lightshow object.
+Write your custom ALUP frames and ALUP devices into the respective arrays and call `lightshow.toJson()` to convert it into a JSON file.
+
+
+
 ## Manual Lightshow Configuration:
+Light shows can also be written manually by hand. To do so:
 Define a json file with:
 - a list of devices
 - a list of frames with ascending timestamps in milliseconds 
@@ -85,4 +94,4 @@ Frame, Command and Device API are kept analogous to the [pyalup definitions](htt
 See 'example.json' for an example lightshow with two devices.
 
 ## Logging/debugging:
-We use the python logging module. To specify the log level, change the level in `lightshow.py`
+We use the python logging module. To specify the log level, change the level in `lightshow.py` or use the command line arguments if available
