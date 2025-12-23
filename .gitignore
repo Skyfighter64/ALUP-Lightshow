@@ -1,6 +1,7 @@
 *.mp4
 lightshow.json
 shows/*
+!shows/examples
 output.json
 .vscode/
 
