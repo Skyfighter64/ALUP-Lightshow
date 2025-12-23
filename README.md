@@ -18,6 +18,18 @@ Only use trusted light show json files, don't run files from untrused sources wi
 1. Change the device connection parameters to your devices in your lightshow file (eg. for `example.json: Set the IP address for Device 0 and the COM-Port for device 1 correctly or specify device in cmdline options)
 2. Run: `python3 lightshow_player.py [filename.json]`
 
+There are some example light shows in `shows/examples` for:
+
+- 100 LEDs in linear arrangement
+- 10x LED Matrix arrangement
+- custom 'zigzag' arrangement
+
+You might need to change the device port/baud rate/... to fit your led setup.
+
+The example arrangement files can be found in `arrangements/`
+
+**NOTE**: Even though they are made for different arrangements, the lightshows can be run on any LED strip (disregarding arrangement/number of LEDs), but they won't look as intended.
+
 ## Create a lightshow from a Video:
 Run `python3 video_to_lightshow.py [video_file.mp4] -o [output.json]` to start conversion
 **NOTE:** `python3 video_to_lightshow.py --help` to find out more about the arguments
