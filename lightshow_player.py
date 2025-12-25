@@ -44,6 +44,7 @@ def main():
         logging.warning("No device specified in lightshow file. Please add a device to the JSON file.")
 
     # override device with commandline argument if given
+    #TODO: This does not work if no device is in the file at all; Then, loading the frames gets skipped
     if(args.serial is not None):
         logging.info("Using Serial Device from Commandline Args: " + str(args.serial))
         if(len(lightshow.devices) == 0):
