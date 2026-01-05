@@ -92,8 +92,7 @@ class Lightshow:
                 self.logger.debug("Connection too slow; Skipping frame")
                 continue
             
-            device.frame = frame
-            device.Send()
+            device.Send(frame)
             
             self.logger.debug("Sent frame to device " + str(device.configuration.deviceName) + "\n"+ str(frame))
             # reset the time stamp to the relative time stamp
