@@ -68,9 +68,9 @@ def main():
     lightshow.Calibrate()
 
     CountDown(args.countdown)
-
+    # run light show
+    
     try:
-        # run light show
         while True:
             lightshow.Run(args.speed)
             if(not args.loop):
@@ -85,13 +85,22 @@ def main():
             device.Disconnect()
 
 
-def SetLogLevel(logger, level):
-    """Get or set the log level.
+def CountDown(seconds):
+    if (seconds > 0):
+        print("----[ Starting in: ]----")
+        for i in reversed(range(seconds + 1)):
+            time.sleep(1)
+            print(i)
+
+def SetLogLevel(logger : logging.Logger, level):
+    """Set the log level.
     Usage: loglevel [level]
     @param level: the log level to set (int or string).
     Possible log levels:
         NOTSET (0)
+        PHYSICAL (5)
         DEBUG (10)
+        PROTOCOL (15)
         INFO (20)
         WARNING (30)
         ERROR (40)
@@ -99,17 +108,21 @@ def SetLogLevel(logger, level):
     """
     # set the new log level
     try:
-        logger.setLevel(level)
+        logger.setLevel(TryStrToInt(level))
     except ValueError:
         print("Unknown Log Level: " + str(level))
 
+def TryStrToInt(text : str):
+    """
+    Try to convert a given text to an interger.
+    If not possible, return the original text
 
-def CountDown(seconds):
-    if (seconds > 0):
-        print("----[ Starting in: ]----")
-        for i in reversed(range(seconds + 1)):
-            time.sleep(1)
-            print(i)
+    """
+    try:
+        return int(text)
+    except ValueError:
+        return text
+
 
 # create an alup Serial connection from a string of connection parameters
 # Format: [PORT]{:[Baud]}
