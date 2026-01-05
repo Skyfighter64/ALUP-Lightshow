@@ -34,7 +34,9 @@ def main():
     args = parser.parse_args()
     logging.basicConfig(format="[%(asctime)s %(levelname)s]: %(message)s", datefmt="%H:%M:%S")
     lightshow = Lightshow()
+    # set log level for lightshow logger and root logger
     SetLogLevel(lightshow.logger, args.loglevel)
+    SetLogLevel(logging.root, args.loglevel)
     if(args.verbose):
         lightshow.logger.setLevel(logging.DEBUG)
 
