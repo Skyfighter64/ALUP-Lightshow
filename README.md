@@ -21,6 +21,7 @@ Only use trusted light show json files, don't run files from untrused sources wi
 ## Running a light show:
 1. Change the device connection parameters to your devices in your lightshow file (eg. for `example.json: Set the IP address for Device 0 and the COM-Port for device 1 correctly or specify device in cmdline options)
 2. Run: `python3 lightshow_player.py [filename.json]`
+**NOTE:** `python3 lightshow_player.py --help` to learn about available commandline arguments
 
 There are some example light shows in `shows/examples` for:
 

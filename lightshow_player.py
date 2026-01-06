@@ -40,6 +40,7 @@ def main():
     if(args.verbose):
         lightshow.logger.setLevel(logging.DEBUG)
 
+    # load lightshow from file
     try:
         lightshow.fromJson(args.lightshow_file)
     except IndexError:
@@ -68,8 +69,8 @@ def main():
     lightshow.Calibrate()
 
     CountDown(args.countdown)
+
     # run light show
-    
     try:
         while True:
             lightshow.Run(args.speed)
