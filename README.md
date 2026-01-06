@@ -1,7 +1,11 @@
 ## ALUP Lightshow
 
 A basic ALUP lightshow player. 
-Play time stamp-based lightshows from json files to one or more ALUP LED Receivers.
+Create and Play time stamp-based lightshows from json files to one or more ALUP LED Receivers.
+
+Demo with a 10x10 LED Matrix: 
+https://www.youtube.com/watch?v=Wk8-X-FvkQ8
+(Arrangement: ./arrangements/matrix.bmp, Show: ./shows/examples/matrix/bad_apple.json)
 
 **NEW:**
 Generate simple light shows using `video_to_lightshow.py`
