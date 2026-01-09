@@ -23,6 +23,10 @@ class Lightshow:
         self.t_start = 0
         self._skip_late_frames = True
 
+        # callbacks for when show starts/stops
+        self.on_show_start = None
+        self.on_show_stop = None
+
     
     
     def Run(self, speed=1):
@@ -31,6 +35,9 @@ class Lightshow:
         self.logger.info(f"Start running lightshow at {speed}x speed")
         self.logger.info("at " + str(time.strftime('%d.%m.%y %Hh:%Mm:%Ss', time.gmtime(self.t_start / 1000))))
 
+        # call start callback function
+        if (self.on_show_start):
+            self.on_show_start()
 
         self.logger.debug("Registering threads")
         # register threads for each device
@@ -48,12 +55,14 @@ class Lightshow:
             thread.start()
 
         # wait for all threads to finish
-
         for thread in threads:
             thread.join()
 
-        # wait for all outstanding answers
+        # call stop callback function
+        if (self.on_show_stop):
+            self.on_show_stop()
 
+        # wait for all outstanding answers
         for device in self.devices:
             self.logger.debug("Flushing buffer for device " + str(device.configuration.deviceName))
             device.FlushBuffer()
