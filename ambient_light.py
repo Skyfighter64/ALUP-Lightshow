@@ -26,22 +26,22 @@ def main():
     #device.SerialConnect(port="COM6", baud=115200)
     device.SerialConnect(port="COM6", baud=250000)
 
-    ambilight = Ambilight(device, arrangement)
-    ambilight.logger.setLevel(logging.INFO)
-    ambilight.interpolation = cv2.INTER_AREA
+    ambientlight = Ambientlight(device, arrangement)
+    ambientlight.logger.setLevel(logging.INFO)
+    ambientlight.interpolation = cv2.INTER_AREA
 
-    #ambilight.Run()
+    #ambientlight.Run()
 
     
     profiler = cProfile.Profile()
-    profiler.runcall(ambilight.Run)
+    profiler.runcall(ambientlight.Run)
 
     profiler.print_stats(sort='cumtime')
     
     
 
 
-class Ambilight():
+class Ambientlight():
     def __init__(self, device, arrangement, monitor = 0):
         """
         Default constructor
