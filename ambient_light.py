@@ -5,26 +5,30 @@ from PIL import Image
 from pyalup.Device import Device 
 import logging
 import time
+import os
+import sys
 
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
 from lightshow.arrangement import Arrangement
+from lightshow.util import Convert
 
 import cProfile
 
 
-logging.basicConfig()
-#logging.basicConfig(level=logging.DEBUG)
+#logging.basicConfig()
+logging.basicConfig(level=logging.WARNING)
 
 def main():
     arrangement = Arrangement()
-    #arrangement.FromBitmap("./arrangements/zigzag.bmp")
-    arrangement.Linear(19, height=10)
+    arrangement.FromBitmap("./arrangements/zigzag.bmp")
+    #arrangement.Linear(19, height=10)
 
     device = Device()
+    device.TcpConnect("192.168.180.116", 5012)
     #device.SerialConnect(port="COM6", baud=115200)
-    device.SerialConnect(port="COM6", baud=250000)
+    #device.SerialConnect(port="COM6", baud=250000)
 
     ambientlight = Ambientlight(device, arrangement)
     ambientlight.logger.setLevel(logging.INFO)
@@ -82,7 +86,7 @@ class Ambientlight():
                     
                     # send to ALUP Receiver
                     self.device.SetColors(colors)
-                    self.device.frame.offset = 32
+                    #self.device.frame.offset = 32
                     self.device.Send()
 
                     if (cv2.waitKey(1) & 0xFF) == ord('q'):
@@ -108,7 +112,7 @@ class Ambientlight():
             x = led[1]
             y = led[2]
             # convert to hex color for ALUP
-            colors[index] = _RGBToInt(rgb_frame[y][x])
+            colors[index] = int(Convert.rgbToInt(rgb_frame[y][x]))
         return colors
 
     def _RgbToHex(self, rgb):
