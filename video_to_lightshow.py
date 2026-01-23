@@ -19,7 +19,7 @@ sys.path.append(os.path.dirname(SCRIPT_DIR))
 from lightshow.lightshow import Lightshow
 from lightshow.arrangement import Arrangement
 from lightshow.postprocessing import Postprocessing
-from lightshow.util import Convert
+from lightshow.util import Convert, Utility
 
 """
 
@@ -52,9 +52,9 @@ def main():
 
     device = Device()
     if(args.serial is not None):
-        device.connection = SerialConnectionFromString(args.serial[0])
+        device.connection = Utility.SerialConnectionFromString(args.serial[0])
     elif(args.tcp is not None):
-        device.connection = TcpConnectionFromString(args.tcp[0])
+        device.connection = Utility.TcpConnectionFromString(args.tcp[0])
     else:
         # don't add device because it is not specified
         device = None
@@ -162,24 +162,6 @@ def SampleFromFrame(frame, arrangement):
         y = led[2]
         colors[index] = rgb_frame[y][x]
     return colors
-
-# create an alup Serial connection from a string of connection parameters
-# Format: [PORT]{:[Baud]}
-# Default Baud: 115200
-def SerialConnectionFromString(parameters : str):
-    splitted = parameters.split(':')
-    port = splitted[0]
-    baud = int(splitted[1]) if len(splitted) > 1 else 115200
-    return SerialConnection(port, baud)
-
-# create an alup tcp connection from a string of connection parameters
-# Format: [ip]{:[port]}
-# Default port: 5012
-def TcpConnectionFromString(parameters : str):
-    splitted = parameters.split(':')
-    ip = splitted[0]
-    port = int(splitted[1]) if len(splitted) > 1 else 5012
-    return TcpConnection(ip, port)
 
 
 # add a frame with the given colors and the given time stamp

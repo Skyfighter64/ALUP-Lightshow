@@ -11,6 +11,7 @@ from pyalup.Device import Device
 from pyalup.Frame import Frame, Command
 from pyalup.TcpConnection import TcpConnection
 from pyalup.SerialConnection import SerialConnection
+from lightshow.util import Utility
 
 
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -28,15 +29,15 @@ parser.add_argument('--speed', default=1, type=float, help="The playback speed m
 parser.add_argument('--loglevel', default='INFO', help='Specify the minimum level for log messages (Either String or Int value). Possible log levels: NOTSET (0), DEBUG (10), INFO (20), WARNING (30), ERROR (40), CRITICAL (50). Default: INFO')
 
 parser.add_argument('--serial', nargs=1, default=None, help="Specify a serial connected ALUP device replacing the first device of the lightshow: [PORT]{:[BAUD]} eg: COM7:115200. Default Baud:115200")
-parser.add_argument('--tcp', nargs=1, default=None, help="Specify a TCP connected ALUP device replacing the first device of the lightshow. Format: [ip]{:[BAUD]} eg: 127.0.0.1:5012. Default Port: 5012")
+parser.add_argument('--tcp', nargs=1, default=None, help="Specify a TCP connected ALUP device replacing the first device of the lightshow. Format: [ip]{:[PORT]} eg: 127.0.0.1:5012. Default Port: 5012")
 
 def main():
     args = parser.parse_args()
     logging.basicConfig(format="[%(asctime)s %(levelname)s]: %(message)s", datefmt="%H:%M:%S")
     lightshow = Lightshow()
     # set log level for lightshow logger and root logger
-    SetLogLevel(lightshow.logger, args.loglevel)
-    SetLogLevel(logging.root, args.loglevel)
+    Utility.SetLogLevel(lightshow.logger, args.loglevel)
+    Utility.SetLogLevel(logging.root, args.loglevel)
     if(args.verbose):
         lightshow.logger.setLevel(logging.DEBUG)
 
@@ -53,13 +54,13 @@ def main():
         if(len(lightshow.devices) == 0):
             lightshow.devices.append(Device())
             lightshow.frames.append([])
-        lightshow.devices[0].connection = SerialConnectionFromString(args.serial[0])
+        lightshow.devices[0].connection = Utility.SerialConnectionFromString(args.serial[0])
     elif(args.tcp is not None):
         logging.info("Using TCP Device from Commandline Args: " + str(args.tcp))
         if(len(lightshow.devices) == 0):
             lightshow.devices.append(Device())
             lightshow.frames.append([])
-        lightshow.devices[0].connection = TcpConnectionFromString(args.tcp[0])
+        lightshow.devices[0].connection = Utility.TcpConnectionFromString(args.tcp[0])
         lightshow.devices[0]._FRAME_DROP_TIMEOUT = 25_000
     
 
@@ -92,56 +93,6 @@ def CountDown(seconds):
         for i in reversed(range(seconds + 1)):
             time.sleep(1)
             print(i)
-
-def SetLogLevel(logger : logging.Logger, level):
-    """Set the log level.
-    Usage: loglevel [level]
-    @param level: the log level to set (int or string).
-    Possible log levels:
-        NOTSET (0)
-        PHYSICAL (5)
-        DEBUG (10)
-        PROTOCOL (15)
-        INFO (20)
-        WARNING (30)
-        ERROR (40)
-        CRITICAL (50)
-    """
-    # set the new log level
-    try:
-        logger.setLevel(TryStrToInt(level))
-    except ValueError:
-        print("Unknown Log Level: " + str(level))
-
-def TryStrToInt(text : str):
-    """
-    Try to convert a given text to an interger.
-    If not possible, return the original text
-
-    """
-    try:
-        return int(text)
-    except ValueError:
-        return text
-
-
-# create an alup Serial connection from a string of connection parameters
-# Format: [PORT]{:[Baud]}
-# Default Baud: 115200
-def SerialConnectionFromString(parameters : str):
-    splitted = parameters.split(':')
-    port = splitted[0]
-    baud = int(splitted[1]) if len(splitted) > 1 else 115200
-    return SerialConnection(port, baud)
-
-# create an alup tcp connection from a string of connection parameters
-# Format: [ip]{:[port]}
-# Default port: 5012
-def TcpConnectionFromString(parameters : str):
-    splitted = parameters.split(':')
-    ip = splitted[0]
-    port = int(splitted[1]) if len(splitted) > 1 else 5012
-    return TcpConnection(ip, port)
 
 
 if __name__=="__main__":
